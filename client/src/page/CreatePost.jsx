@@ -28,7 +28,7 @@ const CreatePost = () => {
     if (form.prompt) {
       try {
         setGeneratingImg(true);
-        const response = await fetch(`${import.meta.API_BASE_URL}/api/v1/dalle`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/dalle`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -39,9 +39,17 @@ const CreatePost = () => {
         });
 
         const data = await response.json();
-        setForm({ ...form, photo: `data:image/jpeg;base64,${data.photo}` });
+
+        if (!data.success) {
+          alert('API Error - ' + data.message);
+        }
+        
+        if (data?.photo) {
+          setForm({ ...form, photo: `data:image/jpeg;base64,${data.photo}` });
+        }
       } catch (err) {
-        alert(err);
+        console.log(err)
+        alert( err);
       } finally {
         setGeneratingImg(false);
       }
@@ -56,7 +64,7 @@ const CreatePost = () => {
     if (form.prompt && form.photo) {
       setLoading(true);
       try {
-        const response = await fetch(`${import.meta.API_BASE_URL}/api/v1/post`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/post`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -133,6 +141,7 @@ const CreatePost = () => {
           <button
             type="button"
             onClick={generateImage}
+            disabled={(generatingImg || loading)}
             className=" text-white bg-green-700 font-medium rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center"
           >
             {generatingImg ? 'Generating...' : 'Generate'}
@@ -143,6 +152,7 @@ const CreatePost = () => {
           <p className="mt-2 text-[#666e75] text-[14px]">** Once you have created the image you want, you can share it with others in the community **</p>
           <button
             type="submit"
+            disabled={(generatingImg || loading)}
             className="mt-3 text-white bg-[#6469ff] font-medium rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center"
           >
             {loading ? 'Sharing...' : 'Share with the Community'}
